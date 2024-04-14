@@ -4,14 +4,51 @@
     return 0;
 }
 
+// TODO: Check errors
+var arguments = ArgsNET.Deserialize.Arguments(args).To<Data.Arguments>(out var errors);
+if (errors != null)
+    return Error($"Argument error: {errors.arguments[errors.index]} gave the '{errors.error}' error code");
+
+// Validate arguments
+if (!File.Exists(arguments.translations))
+    return Error($"Translations file not found: {arguments.translations}");
+
+if (arguments.input.Length == 0)
+{
+    if (string.IsNullOrWhiteSpace(arguments.find))
+        return Error("No input given");
+}
+else
+{
+    var notFoundFiles = arguments.input
+        .Where(x => !File.Exists(x))
+        .ToArray();
+    if (notFoundFiles.Length > 0)
+    {
+        if (notFoundFiles.Length == 1) return Error($"Input file not found: {notFoundFiles[0]}");
+        return Error($"Input files not found:\n{string.Join("\n  ", notFoundFiles)}");
+    }
+}
+
+// TODO: Append any files found via the regex search in arguments.find
+
 Console.ForegroundColor = ConsoleColor.Red;
-Console.WriteLine("Not implemented");
+Console.WriteLine("Not implemented " + arguments.translations);
 Console.ResetColor();
 return 1;
 
 
 
 
+
+
+static int Error(string error, int code = 1)
+{
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine(error);
+    Console.ResetColor();
+    return code;
+}
 
 
 static void PrintHelp()
